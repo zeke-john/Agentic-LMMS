@@ -27,6 +27,7 @@
 #include <QApplication>
 #include <QCloseEvent>
 #include <QDesktopServices>
+#include <QDir>
 #include <QDomElement>
 #include <QFileInfo>
 #include <QMdiArea>
@@ -37,6 +38,7 @@
 
 #include "AboutDialog.h"
 #include "AutomationEditor.h"
+#include "ChatPanel.h"
 #include "ControllerRackView.h"
 #include "DeprecationHelper.h"
 #include "embed.h"
@@ -461,6 +463,19 @@ void MainWindow::finalize()
 		tr("Show/hide project notes") + " (Ctrl+7)", this, SLOT(toggleProjectNotesWin()), m_toolBar);
 	project_notes_window->setShortcut(keySequence(Qt::CTRL, Qt::Key_7));
 
+	QString chatbotIconPath = QDir(qApp->applicationDirPath()).absoluteFilePath("../plugins/Vibed/chatbot.svg");
+	if (!QFileInfo::exists(chatbotIconPath))
+	{
+		QDir buildDir(qApp->applicationDirPath());
+		if (buildDir.cdUp() && buildDir.cd("plugins") && buildDir.cd("Vibed"))
+		{
+			chatbotIconPath = buildDir.absoluteFilePath("chatbot.svg");
+		}
+	}
+	auto chat_panel_window = new ToolButton(embed::getIconPixmap(chatbotIconPath.toUtf8().constData()),
+		tr("Show/hide AI chat panel") + " (Ctrl+Shift+I)", this, SLOT(toggleChatPanel()), m_toolBar);
+	chat_panel_window->setShortcut(keySequence(Qt::CTRL, Qt::SHIFT, Qt::Key_I));
+
 	m_toolBarLayout->addWidget( song_editor_window, 1, 1 );
 	m_toolBarLayout->addWidget( pattern_editor_window, 1, 2 );
 	m_toolBarLayout->addWidget( piano_roll_window, 1, 3 );
@@ -468,6 +483,7 @@ void MainWindow::finalize()
 	m_toolBarLayout->addWidget( mixer_window, 1, 5 );
 	m_toolBarLayout->addWidget( controllers_window, 1, 6 );
 	m_toolBarLayout->addWidget( project_notes_window, 1, 7 );
+	m_toolBarLayout->addWidget( chat_panel_window, 1, 8 );
 	m_toolBarLayout->setColumnStretch( 100, 1 );
 
 	// setup-dialog opened before?
@@ -1152,6 +1168,14 @@ void MainWindow::onToggleMetronome()
 void MainWindow::toggleControllerRack()
 {
 	toggleWindow( getGUI()->getControllerRackView() );
+}
+
+
+
+
+void MainWindow::toggleChatPanel()
+{
+	toggleWindow( getGUI()->getChatPanel() );
 }
 
 

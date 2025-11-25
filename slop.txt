@@ -1,0 +1,448 @@
+keeping cuz im ass at c++
+
+================================================================================
+LMMS C++ DEVELOPMENT WORKFLOW - Quick Reference for Web Developers
+================================================================================
+
+Author: For developers coming from Python/TypeScript/JavaScript
+Date: November 2025
+Project: LMMS (Digital Audio Workstation in C++)
+
+================================================================================
+CORE CONCEPT: NO HOT RELOAD IN C++
+================================================================================
+
+Unlike Node.js/Python:
+- You CANNOT see changes instantly
+- You MUST recompile after every change
+- The compilation step converts your C++ code into machine code (binary)
+- This takes time: 10 seconds to 2 minutes typically
+
+Think of it like this:
+- JavaScript: Edit recipe → Immediately cook → Eat
+- C++: Edit recipe → Pre-cook meal → Freeze it → Reheat → Eat
+
+================================================================================
+YOUR BASIC WORKFLOW (The "Edit-Compile-Run Loop")
+================================================================================
+
+1. Edit code in VS Code
+2. Save file (Cmd+S)
+3. Rebuild: Cmd+Shift+B  OR  cd build && make -j8
+4. Restart LMMS: cd build && ./lmms
+5. Test your changes
+6. Repeat
+
+TIME PER CYCLE: 30 seconds - 2 minutes (depends on what you changed)
+
+================================================================================
+TERMINAL COMMANDS - WHERE TO RUN THEM
+================================================================================
+
+ALL BUILD COMMANDS MUST RUN FROM THE build/ DIRECTORY:
+
+# Navigate to build directory first
+cd /Users/zekejohn/Documents/Github/Agentic-LMMS/build
+
+# Now you can run make commands
+make -j8
+
+# Run LMMS (also from build/)
+./lmms
+
+================================================================================
+ESSENTIAL COMMANDS & WHEN TO USE THEM
+================================================================================
+
+COMMAND: make -j8
+WHEN: After you edit ANY .cpp or .h file
+WHY: Recompiles only the files that changed (incremental build)
+TIME: 10 seconds - 2 minutes
+WHERE: Must run from build/ directory
+
+Example:
+  cd build
+  make -j8
+
+
+COMMAND: ./lmms
+WHEN: After successful build to run the app
+WHY: Launches LMMS with your changes
+WHERE: Must run from build/ directory
+
+Example:
+  cd build
+  ./lmms
+
+
+COMMAND: make clean && make -j8
+WHEN: When things are broken or acting weird after changes
+WHY: Deletes all compiled files and rebuilds everything from scratch
+TIME: 10-20 minutes (SLOW!)
+WHERE: build/ directory
+
+Example:
+  cd build
+  make clean
+  make -j8
+
+
+COMMAND: make -j8 lmms
+WHEN: You only changed main app code (not plugins)
+WHY: Skips rebuilding plugins, faster
+TIME: 30 seconds - 1 minute
+WHERE: build/ directory
+
+
+COMMAND: Cmd+Shift+B (in VS Code)
+WHEN: Alternative to typing "make -j8" in terminal
+WHY: Keyboard shortcut, keeps you in VS Code
+WHERE: Anywhere in VS Code
+
+
+COMMAND: F5 (in VS Code)
+WHEN: You want to debug with breakpoints
+WHY: Rebuilds AND launches with debugger attached
+WHERE: Anywhere in VS Code
+
+================================================================================
+RECOMMENDED WORKFLOW FOR MAXIMUM SPEED
+================================================================================
+
+OPTION 1: Manual Rebuild (Recommended for Beginners)
+-----------------------------------------------------
+
+Setup:
+1. Open VS Code
+2. Open integrated terminal (Ctrl+`)
+3. Run: cd build
+
+Workflow:
+1. Edit code in VS Code
+2. Press Cmd+Shift+B (builds in background)
+3. Watch terminal until you see "Built target lmms"
+4. In terminal: ./lmms
+5. Test changes
+6. Quit LMMS (Cmd+Q or Ctrl+C in terminal)
+7. Repeat from step 1
+
+PRO: Simple, you control everything
+CON: Manual steps each time
+
+
+OPTION 2: One-Command Rebuild + Run
+------------------------------------
+
+Setup:
+1. Open VS Code terminal (Ctrl+`)
+2. Run: cd build
+
+Workflow:
+1. Edit code
+2. In terminal, run: make -j8 && ./lmms
+3. Wait for build, LMMS auto-starts when done
+4. Test changes
+5. Quit LMMS
+6. Repeat from step 1
+
+PRO: One command does both build and run
+CON: Can't edit while LMMS is running (terminal is busy)
+
+
+OPTION 3: Auto-Rebuild on File Change (Advanced)
+-------------------------------------------------
+
+Setup (one time):
+1. Install fswatch: brew install fswatch
+2. Open TWO terminals in VS Code
+
+Terminal 1 (Auto-Builder):
+  cd /Users/zekejohn/Documents/Github/Agentic-LMMS
+  fswatch -o src/ include/ plugins/ | xargs -n1 -I{} sh -c 'cd build && make -j8'
+
+Terminal 2 (For Running):
+  cd /Users/zekejohn/Documents/Github/Agentic-LMMS/build
+  ./lmms
+
+Workflow:
+1. Edit code and save
+2. Terminal 1 automatically starts building
+3. Watch Terminal 1 until "Built target lmms" appears
+4. In Terminal 2: ./lmms (or restart if already running)
+5. Test changes
+6. Quit LMMS
+7. Repeat from step 1
+
+PRO: Automatic rebuilds, fastest feedback
+CON: More complex setup, uses 2 terminals
+
+
+OPTION 4: Quick Rebuild Script (Simplest)
+------------------------------------------
+
+Setup:
+  None needed, script already created
+
+Workflow:
+1. Edit code
+2. Run: ./dev-rebuild.sh
+3. When done, run: cd build && ./lmms
+4. Test changes
+5. Quit LMMS
+6. Repeat from step 1
+
+PRO: Simple, shows build time
+CON: Two commands instead of one
+
+================================================================================
+UNDERSTANDING BUILD OUTPUT
+================================================================================
+
+SCENARIO 1: Nothing to do
+Terminal shows: "make: Nothing to be done for 'all'."
+MEANING: No files changed since last build
+ACTION: You can run ./lmms immediately (already built)
+
+
+SCENARIO 2: Quick rebuild (10-30 seconds)
+Terminal shows:
+  [ 98%] Building CXX object src/gui/CMakeFiles/lmmsobjs.dir/MainWindow.cpp.o
+  [ 99%] Linking CXX executable lmms
+  [100%] Built target lmms
+
+MEANING: Only a few files changed, quick recompile
+ACTION: Wait for [100%], then run ./lmms
+
+
+SCENARIO 3: Slow rebuild (1-2 minutes)
+Terminal shows:
+  [ 50%] Building CXX object plugins/...
+  [ 51%] Building CXX object src/core/...
+  (many lines)
+
+MEANING: You changed a header file (.h) that many files include
+ACTION: Wait patiently, then run ./lmms
+
+
+SCENARIO 4: Full rebuild (10-20 minutes)
+Terminal shows:
+  [  1%] Building CXX object src/3rdparty/...
+  [  2%] Building CXX object src/3rdparty/...
+  [  3%] Building CXX object src/core/...
+  (hundreds of lines)
+
+MEANING: Clean build or major changes
+ACTION: Go get coffee, come back, run ./lmms
+
+
+SCENARIO 5: Build error
+Terminal shows:
+  /path/to/file.cpp:123:5: error: expected ';' after expression
+
+MEANING: Syntax error in your code
+ACTION: Fix the error, run make -j8 again
+
+================================================================================
+DEBUGGING (Finding Bugs in Your Code)
+================================================================================
+
+PRINT DEBUGGING (like console.log):
+-----------------------------------
+
+Add to any .cpp file:
+  #include <QDebug>
+  
+  qDebug() << "Debug message:" << someVariable;
+
+Rebuild and run, output appears in terminal where you ran ./lmms
+
+
+USING VS CODE DEBUGGER:
+-----------------------
+
+1. Click left of line number to set breakpoint (red dot appears)
+2. Press F5
+3. LMMS runs until it hits your breakpoint
+4. Use Debug panel to inspect variables
+5. Press F5 again to continue
+
+Just like Chrome DevTools!
+
+================================================================================
+WHAT FILES TO EDIT
+================================================================================
+
+LOCATION          | WHAT IT IS                    | REBUILD TIME
+------------------|-------------------------------|---------------
+src/gui/*.cpp     | User interface code           | 30 sec - 1 min
+src/core/*.cpp    | Audio engine, main logic      | 30 sec - 1 min
+plugins/*/        | Individual instruments/effects| 30 sec - 1 min
+include/*.h       | Headers (interfaces)          | 1-5 min (SLOW!)
+data/themes/      | UI images (PNG/SVG)           | No rebuild needed!
+data/locale/      | Translations                  | No rebuild needed!
+
+TIP: Changing images/translations doesn't require rebuild! Just restart LMMS.
+
+================================================================================
+FILE TYPES YOU'LL SEE
+================================================================================
+
+.cpp files = C++ source code (your main work)
+.h files   = C++ headers (declarations/interfaces)
+.hpp files = C++ headers (alternative extension)
+.ui files  = Qt Designer UI files (visual layouts)
+.qrc files = Qt resource files (bundles images)
+.ts files  = Translation files (NOT TypeScript!)
+.so files  = Compiled plugins (like .dll on Windows)
+
+================================================================================
+COMMON MISTAKES & FIXES
+================================================================================
+
+MISTAKE: Running "make" from wrong directory
+ERROR: "make: *** No rule to make target 'all'. Stop."
+FIX: cd /Users/zekejohn/Documents/Github/Agentic-LMMS/build
+
+
+MISTAKE: Forgot semicolon in C++ code
+ERROR: "expected ';' after expression"
+FIX: Add semicolon, every line in C++ needs one!
+
+
+MISTAKE: Changed header file, build seems cached
+ERROR: Old behavior still showing after changes
+FIX: cd build && make clean && make -j8
+
+
+MISTAKE: LMMS crashes after your changes
+ERROR: "Segmentation fault" or crash
+FIX: 
+  1. Undo your changes
+  2. Rebuild: make -j8
+  3. Use debugger (F5) to find where it crashes
+
+
+MISTAKE: Build taking forever
+ERROR: Stuck at low percentage for minutes
+FIX: Wait, it's normal. C++ compilation is slow. Or press Ctrl+C and try:
+     make clean && make -j8
+
+================================================================================
+COMPARING TO WEB DEVELOPMENT
+================================================================================
+
+WEB DEV WORKFLOW:
+  Edit index.ts → Save → Vite hot reload → See change
+  TIME: 0.5 - 2 seconds
+  TOOLS: nodemon, webpack-dev-server, vite
+
+C++ WORKFLOW:
+  Edit MainWindow.cpp → Save → Compile → Link → Run → See change
+  TIME: 30 seconds - 2 minutes
+  TOOLS: make, cmake, compiler (clang/gcc)
+
+WHY SO SLOW?
+  C++ compiles to native machine code (binary 1s and 0s)
+  JavaScript/Python are interpreted (read at runtime)
+  Trade-off: C++ runs 100x faster but compiles slower
+
+================================================================================
+MAXIMIZE YOUR PRODUCTIVITY
+================================================================================
+
+STRATEGY 1: Batch Your Changes
+Instead of: Edit one line → Build → Test → Edit one line → Build → Test
+Do this: Edit 5-10 related lines → Build once → Test all changes
+
+WHY: Each build takes time, minimize number of builds
+
+
+STRATEGY 2: Work on Multiple Things
+While waiting for build:
+- Read code in other files
+- Plan next change
+- Check documentation
+- Review git diff
+
+
+STRATEGY 3: Use Fast Feedback When Possible
+- Test logic in separate small test files first
+- Use qDebug() for quick checks instead of full debugging
+- Change data files (images/translations) when possible (no rebuild!)
+
+
+STRATEGY 4: Know What Changed
+If you changed:
+- ONE .cpp file → Build is fast (10-30 sec)
+- ONE .h file → Build is slow (1-5 min)
+- Multiple files → Very slow (5-10 min)
+
+Plan accordingly!
+
+================================================================================
+YOUR CHEAT SHEET (Copy This)
+================================================================================
+
+# Navigate to build directory
+cd /Users/zekejohn/Documents/Github/Agentic-LMMS/build
+
+# Rebuild after changes (use this 90% of the time)
+make -j8
+
+# Run LMMS
+./lmms
+
+# One command to rebuild and run
+make -j8 && ./lmms
+
+# Clean rebuild when things are weird
+make clean && make -j8
+
+# In VS Code:
+# Cmd+Shift+B = build
+# F5 = build + debug
+# Ctrl+C = stop LMMS
+
+# Add debug prints in code:
+#include <QDebug>
+qDebug() << "Variable value:" << myVar;
+
+# Auto-rebuild on file changes (advanced)
+brew install fswatch
+fswatch -o src/ include/ | xargs -n1 -I{} sh -c 'cd build && make -j8'
+
+================================================================================
+FINAL TIPS
+================================================================================
+
+1. ALWAYS run make commands from build/ directory
+2. Expect 30 sec - 2 min per rebuild (normal!)
+3. Batch multiple changes before rebuilding
+4. Use Cmd+Shift+B in VS Code (faster than typing)
+5. Keep terminal open to see build output
+6. When stuck, try: make clean && make -j8
+7. Use qDebug() for quick debugging
+8. Remember: Slower development, but MUCH faster runtime (worth it for audio!)
+
+================================================================================
+GETTING HELP
+================================================================================
+
+Build errors: Read error message carefully, shows file and line number
+Crashes: Use F5 debugger to find where it crashes
+Questions: LMMS Discord - https://discord.gg/3sc5su7
+Docs: https://github.com/LMMS/lmms/wiki
+
+================================================================================
+GOOD LUCK! 🎵
+================================================================================
+
+Remember: C++ development is slower but the app runs 100x faster.
+That's why LMMS can process audio in real-time without lag.
+The compilation step is the price we pay for performance.
+
+After a few cycles, it becomes second nature:
+Edit → Cmd+Shift+B → Wait → ./lmms → Test → Repeat
+
+You got this!
+

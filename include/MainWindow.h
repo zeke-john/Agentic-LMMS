@@ -165,6 +165,7 @@ public slots:
 	void toggleMixerWin();
 	void togglePianoRollWin();
 	void toggleControllerRack();
+	void toggleChatPanel();
 	void toggleFullscreen();
 
 	void updatePlayPauseIcons();

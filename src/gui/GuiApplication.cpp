@@ -30,6 +30,7 @@
 #include "LmmsPalette.h"
 
 #include "AutomationEditor.h"
+#include "ChatPanel.h"
 #include "ConfigManager.h"
 #include "ControllerRackView.h"
 #include "MixerView.h"
@@ -192,6 +193,10 @@ GuiApplication::GuiApplication()
 	m_automationEditor = new AutomationEditorWindow;
 	connect(m_automationEditor, SIGNAL(destroyed(QObject*)), this, SLOT(childDestroyed(QObject*)));
 
+	displayInitProgress(tr("Preparing chat panel"));
+	m_chatPanel = new ChatPanel;
+	connect(m_chatPanel, SIGNAL(destroyed(QObject*)), this, SLOT(childDestroyed(QObject*)));
+
 	splashScreen.finish(m_mainWindow);
 	m_mainWindow->finalize();
 
@@ -253,6 +258,10 @@ void GuiApplication::childDestroyed(QObject *obj)
 	else if (obj == m_controllerRackView)
 	{
 		m_controllerRackView = nullptr;
+	}
+	else if (obj == m_chatPanel)
+	{
+		m_chatPanel = nullptr;
 	}
 }
 

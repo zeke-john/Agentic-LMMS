@@ -37,6 +37,7 @@ namespace lmms::gui
 {
 
 class AutomationEditorWindow;
+class ChatPanel;
 class ControllerRackView;
 class MixerView;
 class MainWindow;
@@ -71,6 +72,7 @@ public:
 	MicrotunerConfig* getMicrotunerConfig() { return m_microtunerConfig; }
 	AutomationEditorWindow* automationEditor() { return m_automationEditor; }
 	ControllerRackView* getControllerRackView() { return m_controllerRackView; }
+	ChatPanel* getChatPanel() { return m_chatPanel; }
 
 	//! File descriptors for unix socketpair, used to receive SIGINT
 	static inline int s_sigintFd[2];
@@ -94,6 +96,7 @@ private:
 	ProjectNotes* m_projectNotes;
 	MicrotunerConfig* m_microtunerConfig;
 	ControllerRackView* m_controllerRackView;
+	ChatPanel* m_chatPanel;
 	QLabel* m_loadingProgressLabel;
 	QSocketNotifier* m_sigintNotifier;
 };
