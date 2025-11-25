@@ -17,6 +17,7 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QVBoxLayout>
+#include <QHBoxLayout>
 #include <QDomDocument>
 #include <QDomElement>
 
@@ -35,14 +36,20 @@ public:
 
 protected:
 	void closeEvent(QCloseEvent* ce) override;
+	bool eventFilter(QObject* watched, QEvent* event) override;
 
 private slots:
 	void onSendMessage();
+	void onClearHistory();
 
 private:
+	void repositionClearButton();
+
+	QWidget* m_chatContainer;
 	QTextEdit* m_chatHistory;
 	QLineEdit* m_inputField;
 	QPushButton* m_sendButton;
+	QPushButton* m_clearButton;
 };
 
 } // namespace lmms::gui

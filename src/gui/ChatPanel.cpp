@@ -14,6 +14,7 @@
 #include <QCloseEvent>
 #include <QDomDocument>
 #include <QDomElement>
+#include <QEvent>
 #include <QLabel>
 #include <QScrollBar>
 
@@ -31,36 +32,90 @@ ChatPanel::ChatPanel() :
 	setWindowIcon(embed::getIconPixmap("text_block"));
 	setWindowTitle(tr("Your AI Producer"));
 
+	setStyleSheet("background-color: #0d0d0d;");
+
 	auto mainLayout = new QVBoxLayout(this);
-	mainLayout->setContentsMargins(8, 8, 8, 8);
-	mainLayout->setSpacing(8);
+	mainLayout->setContentsMargins(12, 12, 12, 12);
+	mainLayout->setSpacing(6);
 	
-	m_chatHistory = new QTextEdit(this);
-	m_chatHistory->setReadOnly(true);
-	m_chatHistory->setPlaceholderText(tr("Create, modify, and get inspiration for your beats here :)"));
-	m_chatHistory->setStyleSheet(
-		"QTextEdit {"
-		"  background-color: #1a1a2e;"
-		"  color: #e0e0e0;"
-		"  border: 1px solid #333355;"
-		"  border-radius: 4px;"
-		"  padding: 8px;"
+	m_chatContainer = new QWidget(this);
+	m_chatContainer->setStyleSheet(
+		"QWidget#chatContainer {"
+		"  background-color: #141414;"
+		"  border: none;"
+		"  border-radius: 12px;"
 		"}"
 	);
-	mainLayout->addWidget(m_chatHistory, 1);
+	m_chatContainer->setObjectName("chatContainer");
+	auto chatContainerLayout = new QVBoxLayout(m_chatContainer);
+	chatContainerLayout->setContentsMargins(0, 0, 0, 0);
+	chatContainerLayout->setSpacing(0);
+	
+	m_chatHistory = new QTextEdit(m_chatContainer);
+	m_chatHistory->setReadOnly(true);
+	m_chatHistory->setPlaceholderText(tr("Create, modify, and get inspiration for your beats :)"));
+	m_chatHistory->setStyleSheet(
+		"QTextEdit {"
+		"  background-color: transparent;"
+		"  color: #b0b0b0;"
+		"  border: none;"
+		"  padding: 16px;"
+		"  font-size: 13px;"
+		"}"
+		"QScrollBar:vertical {"
+		"  background: transparent;"
+		"  width: 6px;"
+		"  margin: 4px 2px 4px 0px;"
+		"}"
+		"QScrollBar::handle:vertical {"
+		"  background: #2a2a2a;"
+		"  border-radius: 3px;"
+		"  min-height: 20px;"
+		"}"
+		"QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {"
+		"  height: 0px;"
+		"}"
+	);
+	chatContainerLayout->addWidget(m_chatHistory);
+	
+	m_clearButton = new QPushButton(m_chatContainer);
+	m_clearButton->setIcon(embed::getIconPixmap("clear_history"));
+	m_clearButton->setIconSize(QSize(12, 12));
+	m_clearButton->setFixedSize(24, 24);
+	m_clearButton->setToolTip(tr("Clear History"));
+	m_clearButton->setStyleSheet(
+		"QPushButton {"
+		"  background-color: rgba(40, 40, 40, 0.7);"
+		"  border: none;"
+		"  border-radius: 12px;"
+		"}"
+		"QPushButton:hover {"
+		"  background-color: rgba(60, 60, 60, 0.9);"
+		"}"
+	);
+	connect(m_clearButton, &QPushButton::clicked, this, &ChatPanel::onClearHistory);
+	m_clearButton->raise();
+	
+	m_chatContainer->installEventFilter(this);
+	
+	mainLayout->addWidget(m_chatContainer, 1);
 
 	auto inputLayout = new QHBoxLayout();
-	inputLayout->setSpacing(8);
+	inputLayout->setSpacing(6);
 
 	m_inputField = new QLineEdit(this);
 	m_inputField->setPlaceholderText(tr("Type a message..."));
 	m_inputField->setStyleSheet(
 		"QLineEdit {"
-		"  background-color: #252540;"
-		"  color: #e0e0e0;"
-		"  border: 1px solid #333355;"
-		"  border-radius: 4px;"
-		"  padding: 8px;"
+		"  background-color: #1a1a1a;"
+		"  color: #c0c0c0;"
+		"  border: none;"
+		"  border-radius: 12px;"
+		"  padding: 12px 16px;"
+		"  font-size: 13px;"
+		"}"
+		"QLineEdit::placeholder {"
+		"  color: #505050;"
 		"}"
 	);
 	connect(m_inputField, &QLineEdit::returnPressed, this, &ChatPanel::onSendMessage);
@@ -69,15 +124,15 @@ ChatPanel::ChatPanel() :
 	m_sendButton = new QPushButton(tr("Send"), this);
 	m_sendButton->setStyleSheet(
 		"QPushButton {"
-		"  background-color: #4a4a8a;"
-		"  color: #ffffff;"
+		"  background-color: #1a1a1a;"
+		"  color: #808080;"
 		"  border: none;"
-		"  border-radius: 4px;"
-		"  padding: 9px 16px;"
+		"  border-radius: 12px;"
+		"  padding: 13.5px 20px;"
+		"  font-size: 13px;"
 		"}"
 		"QPushButton:hover {"
-		"  background-color: #5a5a9a;"
-		"  cursor: pointer;"
+		"  color: #white;"
 		"}"
 	);
 	connect(m_sendButton, &QPushButton::clicked, this, &ChatPanel::onSendMessage);
@@ -120,9 +175,9 @@ void ChatPanel::onSendMessage()
 		m_chatHistory->append("<div style='margin-top: 10px;'></div>");
 	}
 	
-	QString msgFormat = "<span style='color: #6a9fff;'><b>You:</b></span> %1";
+	QString msgFormat = "<span style='color: #20C20E;'><b>></b></span> <span style='color: #ffffff; font-style: italic;'>%1</span>";
 	m_chatHistory->append(QString(msgFormat).arg(message));
-	m_chatHistory->append(QString("%1").arg("blah blah blah"));
+	m_chatHistory->append(QString("<div style='height: 8px;'></div><span style='color: #b0b0b0;'>%1</span>").arg("blah blah blah"));
 	
 	isFirstMessage = false;
 
@@ -130,6 +185,11 @@ void ChatPanel::onSendMessage()
 
 	QScrollBar* scrollBar = m_chatHistory->verticalScrollBar();
 	scrollBar->setValue(scrollBar->maximum());
+}
+
+void ChatPanel::onClearHistory()
+{
+	m_chatHistory->clear();
 }
 
 void ChatPanel::saveSettings(QDomDocument& doc, QDomElement& element)
@@ -151,6 +211,20 @@ void ChatPanel::closeEvent(QCloseEvent* ce)
 		hide();
 	}
 	ce->ignore();
+}
+
+bool ChatPanel::eventFilter(QObject* watched, QEvent* event)
+{
+	if (watched == m_chatContainer && event->type() == QEvent::Resize) {
+		repositionClearButton();
+	}
+	return QWidget::eventFilter(watched, event);
+}
+
+void ChatPanel::repositionClearButton()
+{
+	int x = m_chatContainer->width() - m_clearButton->width() - 8;
+	m_clearButton->move(x, 8);
 }
 
 } // namespace lmms::gui
