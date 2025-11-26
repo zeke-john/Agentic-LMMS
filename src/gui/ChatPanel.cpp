@@ -132,7 +132,7 @@ ChatPanel::ChatPanel() :
 		"  font-size: 13px;"
 		"}"
 		"QPushButton:hover {"
-		"  color: #white;"
+		"  background-color: #2a2a2a;"
 		"}"
 	);
 	connect(m_sendButton, &QPushButton::clicked, this, &ChatPanel::onSendMessage);

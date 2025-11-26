@@ -1,0 +1,10 @@
+(cd build)
+
+rebuild after changes (use this 90% of the time) -> make -j8
+
+run LMMS -> ./lmms
+
+so use this after u make a change the rebuild:
+make -j8 && ./lmms
+
+clean rebuild when things are weird -> make clean && make -j8
