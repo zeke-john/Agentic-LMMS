@@ -13,16 +13,21 @@
 #define LMMS_GUI_CHAT_PANEL_H
 
 #include <QWidget>
-#include <QTextEdit>
+#include <QScrollArea>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QLabel>
+#include <QFrame>
 #include <QDomDocument>
 #include <QDomElement>
+#include <QJsonObject>
 
 namespace lmms::gui
 {
+
+class CollapsibleSection;
 
 class ChatPanel : public QWidget
 {
@@ -41,18 +46,67 @@ protected:
 private slots:
 	void onSendMessage();
 	void onClearHistory();
+	void onSettingsClicked();
+	void onResponseReceived(const QString& response);
+	void onStreamingChunkReceived(const QString& chunk);
+	void onThinkingChunkReceived(const QString& chunk);
+	void onStreamingStarted();
+	void onStreamingFinished();
+	void onToolCallStarted(const QString& toolName, const QJsonObject& args);
+	void onToolCallCompleted(const QString& toolName, const QString& result);
+	void onErrorOccurred(const QString& error);
+	void onProcessingStarted();
+	void onProcessingFinished();
+	void onScrollValueChanged(int value);
 
 private:
 	void repositionClearButton();
+	void repositionSettingsButton();
+	void showApiKeyDialog();
+	void updateButtonStates();
+	void scrollToBottom();
+	
+	QLabel* createUserMessageWidget(const QString& message);
+	QLabel* createAssistantMessageWidget(const QString& message);
+	QFrame* createToolCallWidget(const QString& toolName, const QString& result);
+	QLabel* createErrorWidget(const QString& error);
+	CollapsibleSection* createThinkingWidget(const QString& content);
+	void addMessageWidget(QWidget* widget);
+	void clearMessages();
+	
+	void updateCurrentStreamingWidgets();
+	void finalizeStreamingWidgets();
 
 	QWidget* m_chatContainer;
-	QTextEdit* m_chatHistory;
+	QScrollArea* m_scrollArea;
+	QWidget* m_messagesContainer;
+	QVBoxLayout* m_messagesLayout;
+	QLabel* m_emptyHintLabel;
 	QLineEdit* m_inputField;
 	QPushButton* m_sendButton;
 	QPushButton* m_clearButton;
+	QPushButton* m_settingsButton;
+	
+	bool m_isFirstMessage;
+	bool m_isProcessing;
+	bool m_isStreaming;
+	bool m_streamingOutputComplete;
+	
+	QString m_currentStreamContent;
+	QString m_currentThinkingContent;
+	bool m_hasThinkingContent;
+
+	CollapsibleSection* m_currentThinkingWidget;
+	QLabel* m_currentContentWidget;
+	
+
+	CollapsibleSection* m_currentToolCallWidget;
+
+	bool m_autoScrollEnabled;
+	int m_lastScrollValue;
+	bool m_isProgrammaticScroll;
 };
 
 } // namespace lmms::gui
 
 #endif // LMMS_GUI_CHAT_PANEL_H
-

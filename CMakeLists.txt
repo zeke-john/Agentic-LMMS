@@ -189,7 +189,7 @@ else()
 	set(STATUS_QT6 "Disabled")
 endif()
 
-find_package(Qt${QT_VERSION_MAJOR} ${LMMS_QT_MIN_VERSION} COMPONENTS Core Gui Widgets Xml Svg REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} ${LMMS_QT_MIN_VERSION} COMPONENTS Core Gui Widgets Xml Svg Network REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS LinguistTools QUIET)
 
 include_directories(SYSTEM
@@ -197,6 +197,7 @@ include_directories(SYSTEM
 	${Qt${QT_VERSION_MAJOR}Gui_INCLUDE_DIRS}
 	${Qt${QT_VERSION_MAJOR}Widgets_INCLUDE_DIRS}
 	${Qt${QT_VERSION_MAJOR}Xml_INCLUDE_DIRS}
+	${Qt${QT_VERSION_MAJOR}Network_INCLUDE_DIRS}
 )
 
 set(QT_LIBRARIES
@@ -205,6 +206,7 @@ set(QT_LIBRARIES
 	Qt${QT_VERSION_MAJOR}::Widgets
 	Qt${QT_VERSION_MAJOR}::Xml
 	Qt${QT_VERSION_MAJOR}::Svg
+	Qt${QT_VERSION_MAJOR}::Network
 )
 
 IF(LMMS_BUILD_LINUX AND WANT_VST AND NOT WANT_QT6)

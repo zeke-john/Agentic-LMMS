@@ -1,6 +1,8 @@
 set(LMMS_SRCS
 	${LMMS_SRCS}
 
+	core/AgentManager.cpp
+	core/AgentTools.cpp
 	core/AudioBusHandle.cpp
 	core/AudioEngine.cpp
 	core/AudioEngineProfiler.cpp
